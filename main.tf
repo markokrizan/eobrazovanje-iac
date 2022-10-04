@@ -21,5 +21,5 @@ provider "aws" {
 }
 
 module "elastic-beanstalk-app" {
-  source = "../resources/app-platform"  
+  source = "./resources/app-platform"  
 }
