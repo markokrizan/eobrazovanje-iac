@@ -23,3 +23,11 @@ provider "aws" {
 module "elastic-beanstalk-app" {
   source = "./resources/app-platform"  
 }
+
+module "database" {
+  source = "./resources/database"  
+}
+
+module "cdn" {
+  source = "./resources/cdn"  
+}
