@@ -61,6 +61,15 @@ resource "aws_cloudfront_distribution" "cdn" {
   viewer_certificate {
     cloudfront_default_certificate = true
   }
+
+  # Workaround for redirection usually used if the deployed content is a SPA
+  # 404 redirects to the index.html which then uses the client side routing to redirect
+  # to the appropriate page
+  custom_error_response {
+    error_code = 404
+    response_code = 200
+    response_page_path = "/index.html"
+  }
 }
 
 // check this if redirect still happening

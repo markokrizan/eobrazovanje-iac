@@ -1,3 +1,11 @@
+variable "certificate_arn" {
+  type = string
+}
+
+variable "zone_id" {
+  type = string
+}
+
 resource "aws_iam_instance_profile" "aws-elasticbeanstalk-ec2-profile" {
   name = "aws-elasticbeanstalk-ec2-profile"
   role = aws_iam_role.ec2-role.name
@@ -142,7 +150,7 @@ resource "aws_elastic_beanstalk_environment" "edu-eb-environment" {
   # setting {
   #     namespace = "aws:elbv2:listener:443"
   #     name      = "SSLCertificateArns"
-  #     value     = var.SSL_CERTIFICATE_ARN
+  #     value     = var.certificate_arn
   # }
 
   setting {
@@ -166,6 +174,20 @@ resource "aws_elastic_beanstalk_environment" "edu-eb-environment" {
   depends_on = [
     aws_iam_instance_profile.aws-elasticbeanstalk-ec2-profile
   ]
+}
+
+data "aws_elastic_beanstalk_hosted_zone" "current" {}
+
+resource "aws_route53_record" "api" {
+  zone_id = var.zone_id
+  name    = "api.ftn-edu-app.com"
+  type    = "A"
+
+  alias {
+    name    = aws_elastic_beanstalk_environment.edu-eb-environment.cname
+    zone_id = data.aws_elastic_beanstalk_hosted_zone.current.id
+    evaluate_target_health = true
+  }
 }
 
 # TODO
