@@ -1,6 +1,22 @@
-# TODO: https://medium.com/runatlantis/hosting-our-static-site-over-ssl-with-s3-acm-cloudfront-and-terraform-513b799aec0f
+# https://medium.com/runatlantis/hosting-our-static-site-over-ssl-with-s3-acm-cloudfront-and-terraform-513b799aec0f
+variable "domain" {
+  type = string
+}
+
+variable "certificate_arn" {
+  type = string
+}
+
+variable "zone_id" {
+  type = string
+}
+
+locals {
+  app_full_uri = format("app.%s", var.domain)
+}
+
 resource "aws_s3_bucket" "site" {
-  bucket = "${var.BUCKET_NAME}"
+  bucket = local.app_full_uri
   acl = "public-read"
 
   policy = <<EOF
@@ -11,7 +27,7 @@ resource "aws_s3_bucket" "site" {
         "Effect":"Allow",
         "Principal": {"AWS": "*"},
         "Action":["s3:GetObject"],
-        "Resource":["arn:aws:s3:::${var.BUCKET_NAME}/*"]
+        "Resource":["arn:aws:s3:::${local.app_full_uri}/*"]
       }]
     }
   EOF
@@ -22,9 +38,16 @@ resource "aws_s3_bucket" "site" {
 }
 
 resource "aws_cloudfront_distribution" "cdn" {
+  depends_on = [
+    aws_s3_bucket.site
+  ]
+
+  # region sertifikata ne valja ovde morace globalni posto je cdn globalni, trebace ti novi cert jebemu
+  # https://stackoverflow.com/questions/53981403/can-terraform-be-used-simply-to-create-resources-in-different-aws-regions
+  # ili zaseban sertifikat
   origin {
-    origin_id   = "${var.BUCKET_NAME}"
-    domain_name = "${var.BUCKET_NAME}.s3.amazonaws.com"
+    origin_id   = local.app_full_uri
+    domain_name = aws_s3_bucket.site.bucket_domain_name
   }
 
   enabled             = true
@@ -33,8 +56,7 @@ resource "aws_cloudfront_distribution" "cdn" {
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
-    target_origin_id = "${var.BUCKET_NAME}"
-
+    target_origin_id = local.app_full_uri
     forwarded_values {
       query_string = true
       cookies {
@@ -48,6 +70,8 @@ resource "aws_cloudfront_distribution" "cdn" {
     max_ttl                = 86400
   }
 
+  aliases = [local.app_full_uri]
+
   # The cheapest priceclass
   price_class = "PriceClass_100"
 
@@ -60,7 +84,8 @@ resource "aws_cloudfront_distribution" "cdn" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    acm_certificate_arn = var.certificate_arn
+    ssl_support_method  = "sni-only"
   }
 
   # Workaround for redirection usually used if the deployed content is a SPA
@@ -73,8 +98,15 @@ resource "aws_cloudfront_distribution" "cdn" {
   }
 }
 
-// check this if redirect still happening
-// https://stackoverflow.com/questions/38735306/aws-cloudfront-redirecting-to-s3-bucket
-output "cdn_domain" {
-  value = "${aws_cloudfront_distribution.cdn.domain_name}"
+// This Route53 record will point at our CloudFront distribution.
+resource "aws_route53_record" "www" {
+  zone_id = var.zone_id
+  name    = local.app_full_uri
+  type    = "A"
+
+  alias {
+    name                   = "${aws_cloudfront_distribution.cdn.domain_name}"
+    zone_id                = "${aws_cloudfront_distribution.cdn.hosted_zone_id}"
+    evaluate_target_health = false
+  }
 }

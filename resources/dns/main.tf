@@ -15,7 +15,11 @@ resource "aws_acm_certificate" "cert" {
   }
 }
 
-output "certificate_arn" {
+output "certificate_arn_us_east_1" {
+  value = var.CERTIFICATE_US_EAST_1  
+}
+
+output "certificate_arn_eu_central_1" {
   value = aws_acm_certificate.cert.arn
 }
 
