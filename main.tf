@@ -28,6 +28,7 @@ module "elastic-beanstalk-app" {
   source = "./resources/app-platform"
   certificate_arn = module.dns.certificate_arn
   zone_id = module.dns.zone_id
+  domain = module.dns.domain
   depends_on = [
     module.dns
   ]

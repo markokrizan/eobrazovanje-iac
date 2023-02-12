@@ -1,13 +1,9 @@
-resource "aws_route53_zone" "main" {
-  name = "ftn-edu-app.com"
-
-  tags = {
-    Environment = "production"
-  }
+data "aws_route53_zone" "main" {
+  name = var.DOMAIN
 }
 
 resource "aws_acm_certificate" "cert" {
-  domain_name       = "*.ftn-edu-app.com"
+  domain_name       = format("*.%s", var.DOMAIN)
   validation_method = "DNS"
 
   tags = {
@@ -24,5 +20,9 @@ output "certificate_arn" {
 }
 
 output "zone_id" {
-  value = aws_route53_zone.main.zone_id
+  value = data.aws_route53_zone.main.zone_id
+}
+
+output "domain" {
+  value = var.DOMAIN
 }

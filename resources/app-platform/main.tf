@@ -6,6 +6,10 @@ variable "zone_id" {
   type = string
 }
 
+variable "domain" {
+  type = string
+}
+
 resource "aws_iam_instance_profile" "aws-elasticbeanstalk-ec2-profile" {
   name = "aws-elasticbeanstalk-ec2-profile"
   role = aws_iam_role.ec2-role.name
@@ -133,25 +137,17 @@ resource "aws_elastic_beanstalk_environment" "edu-eb-environment" {
     name      = "LoadBalancerType"
     value     = "application"
   }
-
   setting {
-    namespace = "aws:elbv2:listener:80"
-    name      = "Protocol"
-    value     = "HTTP"
+      namespace = "aws:elbv2:listener:443"
+      name      = "Protocol"
+      value     = "HTTPS"
   }
 
-  // TODO
-  # setting {
-  #     namespace = "aws:elbv2:listener:443"
-  #     name      = "Protocol"
-  #     value     = "HTTPS"
-  # }
-
-  # setting {
-  #     namespace = "aws:elbv2:listener:443"
-  #     name      = "SSLCertificateArns"
-  #     value     = var.certificate_arn
-  # }
+  setting {
+      namespace = "aws:elbv2:listener:443"
+      name      = "SSLCertificateArns"
+      value     = var.certificate_arn
+  }
 
   setting {
     namespace = "aws:elasticbeanstalk:sns:topics"
@@ -180,7 +176,7 @@ data "aws_elastic_beanstalk_hosted_zone" "current" {}
 
 resource "aws_route53_record" "api" {
   zone_id = var.zone_id
-  name    = "api.ftn-edu-app.com"
+  name    = format("api.%s", var.domain)
   type    = "A"
 
   alias {

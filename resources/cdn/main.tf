@@ -1,3 +1,4 @@
+# TODO: https://medium.com/runatlantis/hosting-our-static-site-over-ssl-with-s3-acm-cloudfront-and-terraform-513b799aec0f
 resource "aws_s3_bucket" "site" {
   bucket = "${var.BUCKET_NAME}"
   acl = "public-read"
