@@ -47,3 +47,8 @@ module "cdn" {
 module "database" {
   source = "./resources/database"
 }
+
+module "storage" {
+  source = "./resources/storage"
+  name = "edu-app-student-documents"
+}
