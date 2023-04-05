@@ -13,8 +13,8 @@ resource "aws_db_instance" "edu_eb_application_db" {
   engine               = "mysql"
   engine_version       = "8.0"
   instance_class       = "db.t3.micro"
-  username             = "root"
-  password             = "oMY90BZP6x1gJ"
+  username             = var.DB_USERNAME
+  password             = var.DB_USERNAME
   skip_final_snapshot  = true
   db_subnet_group_name = aws_db_subnet_group.edu_eb_application_db_subnet_group.name
   multi_az             = false
