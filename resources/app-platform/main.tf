@@ -42,7 +42,6 @@ resource "aws_iam_role" "ec2-role" {
     EOF
 }
 
-#  The EC2 instances failed to communicate with AWS Elastic Beanstalk, either because of configuration problems with the VPC or a failed EC2 instance. Check your VPC configuration and try launching the environment again
 resource "aws_elastic_beanstalk_application" "edu-eb-application" {
   name        = "edu-eb-application"
   description = "Avalon Staging Reporting Public Beanstalk App"

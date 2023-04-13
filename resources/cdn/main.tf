@@ -1,4 +1,3 @@
-# https://medium.com/runatlantis/hosting-our-static-site-over-ssl-with-s3-acm-cloudfront-and-terraform-513b799aec0f
 variable "domain" {
   type = string
 }
@@ -42,9 +41,6 @@ resource "aws_cloudfront_distribution" "cdn" {
     aws_s3_bucket.site
   ]
 
-  # region sertifikata ne valja ovde morace globalni posto je cdn globalni, trebace ti novi cert jebemu
-  # https://stackoverflow.com/questions/53981403/can-terraform-be-used-simply-to-create-resources-in-different-aws-regions
-  # ili zaseban sertifikat
   origin {
     origin_id   = local.app_full_uri
     domain_name = aws_s3_bucket.site.bucket_domain_name
